@@ -1,12 +1,50 @@
 // @desc    Get all hospitals
 // @route   GET /api/v1/hospitals
 
+const { query } = require("express");
 const Hospital = require("../models/Hospital");
 
 // @access  Public
 exports.getHospitals = async (req, res, next) => {
     try {
-        const hospitals = await Hospital.find();
+        let query;
+
+        // Copy req.query
+        const reqQuery = { ...req.query };
+
+        // Fields to exclude
+        const removeFields = ["select", "sort"];
+
+        // Loop over removeFields and delete them from reqQuery
+        removeFields.forEach(param => delete reqQuery[param]);
+        console.log(reqQuery);
+        
+        // Create query string
+        let queryStr = JSON.stringify(req.query);
+
+        // Create operators ($gt, $gte, etc)
+        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+        // Finding resource
+        query = Hospital.find(JSON.parse(queryStr));
+
+        // Select Fields
+        if (req.query.select) {
+            const fields = req.query.select.split(",").join(" ");
+            query = query.select(fields);
+        }
+
+        // Sort
+        if (req.query.sort) {
+            const sortBy = req.query.sort.split(",").join(" ");
+            query = query.sort(sortBy);
+        } else {
+            query = query.sort("-createdAt");
+        }
+        
+        const hospitals = await query;
+        console.log(req.query);
+
         res.status(200).json({
             success: true,
             count: hospitals.length,
