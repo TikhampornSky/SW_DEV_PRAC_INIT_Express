@@ -26,7 +26,7 @@ exports.getHospitals = async (req, res, next) => {
         queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
         // Finding resource
-        query = Hospital.find(JSON.parse(queryStr));
+        query = Hospital.find(JSON.parse(queryStr)).populate('appointments')
 
         // Select Fields
         if (req.query.select) {
@@ -141,10 +141,11 @@ exports.updateHospital = async (req, res, next) => {
 // @access  Private
 exports.deleteHospital = async (req, res, next) => {
     try {
-        const hospital = await Hospital.findByIdAndDelete(req.params.id);
+        const hospital = await Hospital.findById(req.params.id);
         if (!hospital) {
             return res.status(400).json({success: false});
         }
+        hospital.remove();
         res.status(200).json({ success: true, data: {} });
     } catch (err) {
         res.status(400).json({ success: false });
