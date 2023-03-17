@@ -12,14 +12,14 @@ VacCenter.getAll = result => {
         if (err) {
             console.log("error: ", err);
             result(null, err);
-            return;
+            return ;
         }
 
         for (var i = 0; i < res.length; i++) {
             res[i].id = res[i].id.toString();
         }
         console.log("vacCenters: ", res);
-        result(null, res);
+        result(null, res) ;
     });
 }
 
