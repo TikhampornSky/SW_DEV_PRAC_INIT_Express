@@ -15,9 +15,6 @@ VacCenter.getAll = result => {
             return ;
         }
 
-        for (var i = 0; i < res.length; i++) {
-            res[i].id = res[i].id.toString();
-        }
         console.log("vacCenters: ", res);
         result(null, res) ;
     });
