@@ -2,29 +2,43 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const cors = require('cors')
 
-var cors = require('cors')
-
-// Load env vars
-dotenv.config({path: './config/config.env'});
-
-// Connect to database
-connectDB();
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 mins
+    max: 1
+});
 
 // Route files
 const hospitals = require('./routes/hospitals')
 const auth = require('./routes/auth')
 const appointments = require('./routes/appointments')
 
-const app = express();
+// Load env vars
+dotenv.config({path: './config/config.env'});
+// Connect to database
+connectDB();
 
-app.use(cors()) // Use this after the variable declaration
+const app = express();
 
 // Body parser
 app.use(express.json());
 
 // Cookie parser
 app.use(cookieParser());
+
+app.use(mongoSanitize());   // Data sanitization against NoSQL query injection
+app.use(helmet());      // Set security headers
+app.use(xss());         // Prevent XSS attacks
+app.use(limiter);       // Rate limiting
+app.use(hpp());         // Prevent http param pollution
+app.use(cors()) // Use this after the variable declaration
 
 // Mount routers
 app.use('/api/v1/hospitals', hospitals)
